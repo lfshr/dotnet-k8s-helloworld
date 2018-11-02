@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-deployment
+  labels:
+    app: hello-world-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-world-app
+  template:
+    metadata:
+      labels:
+        app: hello-world-app
+    spec:
+      containers:
+      - name: hello-world
+        image: lfshr/hello-world:latest
+        ports:
+        - name: http
+          containerPort: 5000
+        - name: https
+          containerPort: 5001
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: hello-world-svc
+spec:
+  selector:
+    app: hello-world-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 443
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hello-world-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /helloworld
+        backend:
+          serviceName: hello-world-svc
+          servicePort: 80
